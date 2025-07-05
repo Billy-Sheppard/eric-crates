@@ -195,7 +195,6 @@ impl<P: TimeResolution> TimeRange<P> {
         P: LongerThanOrEqual<O>,
     {
         extern crate std;
-        use std::dbg;
 
         let range_start = self.start.start_datetime();
         let range_end = self.end().succ().start_datetime();
@@ -203,7 +202,7 @@ impl<P: TimeResolution> TimeRange<P> {
         let comparison_start = rhs.start_datetime();
         let comparison_end = rhs.succ().start_datetime();
 
-        dbg!(range_start, range_end, comparison_start, comparison_end);
+        // dbg!(range_start, range_end, comparison_start, comparison_end);
 
         (range_start..range_end).contains(&comparison_start)
             && (range_start..range_end).contains(&comparison_end)

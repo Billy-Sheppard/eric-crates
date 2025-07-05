@@ -351,7 +351,7 @@ impl<H, TextSet> Element<H, TextSet, AllowsId>
 where
     H: AsRef<web_sys::HtmlElement> + JsCast + Clone + 'static,
 {
-    pub fn set_id( self, value: &str) -> Element<H, TextSet, HasId> {
+    pub fn set_id(self, value: &str) -> Element<H, TextSet, HasId> {
         AsRef::<web_sys::HtmlElement>::as_ref(&self.dom).set_id(value);
 
         Element {

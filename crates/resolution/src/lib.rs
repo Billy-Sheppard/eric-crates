@@ -429,7 +429,7 @@ pub trait DateResolutionExt: DateResolution {
 
 impl<T> DateResolutionExt for T where T: DateResolution {}
 
-trait DateResolutionBuilder {
+trait _DateResolutionBuilder {
     fn q1(self) -> Quarter;
     fn q2(self) -> Quarter;
     fn q3(self) -> Quarter;
@@ -447,7 +447,7 @@ trait DateResolutionBuilder {
     fn nov(self) -> Month;
     fn dec(self) -> Month;
 }
-impl DateResolutionBuilder for i16 {
+impl _DateResolutionBuilder for i16 {
     fn q1(self) -> Quarter {
         Quarter::from_parts(<Self as Into<i16>>::into(self), quarter::QuarterNumber::Q1)
     }
@@ -498,7 +498,7 @@ impl DateResolutionBuilder for i16 {
     }
 }
 
-impl DateResolutionBuilder for Year {
+impl _DateResolutionBuilder for Year {
     fn q1(self) -> Quarter {
         Quarter::from_parts(self.year_num(), quarter::QuarterNumber::Q1)
     }
