@@ -60,11 +60,11 @@ type Result<T> = std::result::Result<T, DrawingErrorKind<SvgJsError>>;
 
 fn make_svg_color(color: BackendColor) -> String {
     let (r, g, b) = color.rgb;
-    return format!("#{:02X}{:02X}{:02X}", r, g, b);
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
 fn make_svg_opacity(color: BackendColor) -> String {
-    return format!("{}", color.alpha);
+    format!("{}", color.alpha)
 }
 
 /// The SVG image drawing backend
@@ -107,7 +107,7 @@ impl SVGBackend {
         }
     }
 
-    pub fn fill(&mut self, arg: ()) -> Result<()> {
+    pub fn fill(&mut self, _arg: ()) -> Result<()> {
         // TODO
         Ok(())
     }

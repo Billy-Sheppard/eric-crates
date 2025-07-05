@@ -137,7 +137,7 @@ impl Compressed {
                     ),
                 })
             }
-            _ => return None,
+            _ => None,
         }
     }
 

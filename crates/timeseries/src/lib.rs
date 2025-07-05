@@ -92,7 +92,7 @@ where
     key_iter: TimeRangeIter<R>,
 }
 
-impl<'data, R, T> Iterator for TimeseriesIterator<'data, R, T>
+impl<R, T> Iterator for TimeseriesIterator<'_, R, T>
 where
     R: TimeResolution + fmt::Display,
     T: Copy,
@@ -110,21 +110,21 @@ where
     }
 }
 
-impl<'data, R, T> FusedIterator for TimeseriesIterator<'data, R, T>
+impl<R, T> FusedIterator for TimeseriesIterator<'_, R, T>
 where
     R: TimeResolution + fmt::Display,
     T: Copy,
 {
 }
 
-impl<'data, R, T> ExactSizeIterator for TimeseriesIterator<'data, R, T>
+impl<R, T> ExactSizeIterator for TimeseriesIterator<'_, R, T>
 where
     R: TimeResolution + fmt::Display,
     T: Copy,
 {
 }
 
-impl<'data, R, T> DoubleEndedIterator for TimeseriesIterator<'data, R, T>
+impl<R, T> DoubleEndedIterator for TimeseriesIterator<'_, R, T>
 where
     R: TimeResolution + fmt::Display,
     T: Copy,
@@ -146,7 +146,7 @@ where
             TimeseriesData::Plain(vec) => {
                 // compress the data
 
-                let compressed = Compressed::new(&vec).ok_or_else(|| Error::CompressionFailure)?;
+                let compressed = Compressed::new(&vec).ok_or(Error::CompressionFailure)?;
 
                 self.data = TimeseriesData::Compressed(compressed);
 
@@ -229,7 +229,7 @@ where
         conv_out: fn(Decimal) -> T,
         conv_in: fn(T) -> Decimal,
     ) -> Result<Timeseries<R, T>> {
-        if u64::from(range.len().get()) != u64::try_from(input_data.len()).unwrap() {
+        if range.len().get() != u64::try_from(input_data.len()).unwrap() {
             return Err(Error::NonMatchingLength {
                 range: range.len(),
                 data: input_data.len(),

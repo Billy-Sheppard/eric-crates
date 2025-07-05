@@ -1,8 +1,4 @@
-use std::{
-    env, fs,
-    io::{self, BufRead},
-    process, sync, thread,
-};
+use std::env;
 
 macro_rules! cmd {
     ( $cmd:literal $(,)? ) => {

@@ -1,7 +1,5 @@
 use crate::DateResolution;
 use crate::DateResolutionExt;
-use crate::LongerThan;
-use crate::LongerThanOrEqual;
 use crate::Monotonic;
 use crate::SubDateResolution;
 use crate::TimeResolution;
@@ -74,7 +72,7 @@ where
 }
 
 #[cfg(feature = "serde")]
-impl<'de, R, Z> serde::Serialize for Zoned<R, Z>
+impl<R, Z> serde::Serialize for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
     Z: FixedTimeZone,
@@ -92,7 +90,7 @@ where
 impl<R, Z> TimeResolution for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Send,
 {
     fn succ_n(&self, n: u64) -> Self {
         Zoned {
@@ -117,7 +115,7 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Send,
 {
     pub fn local_end_exclusive(&self) -> chrono::DateTime<Z> {
         self.succ().local_start_datetime()
@@ -221,7 +219,7 @@ where
 impl<R, Z> SubDateResolution for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Send,
 {
     type Params = Z;
     fn params(&self) -> Self::Params {
@@ -252,7 +250,7 @@ where
 impl<R, Z> DateResolution for Zoned<R, Z>
 where
     R: DateResolution<Params = ()>,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Send,
 {
     type Params = Z;
     fn params(&self) -> Self::Params {

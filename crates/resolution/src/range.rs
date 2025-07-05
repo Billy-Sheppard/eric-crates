@@ -233,12 +233,12 @@ impl<P: TimeResolution> TimeRange<P> {
     }
 }
 
-pub struct TimeRangeIter<P: TimeResolution> {
+pub struct TimeRangeIter<P: TimeResolution + Send> {
     start: P,
     end: P,
 }
 
-impl<P: TimeResolution> Iterator for TimeRangeIter<P> {
+impl<P: TimeResolution + Send> Iterator for TimeRangeIter<P> {
     type Item = P;
     fn next(&mut self) -> Option<Self::Item> {
         if self.start <= self.end {
@@ -259,11 +259,11 @@ impl<P: TimeResolution> Iterator for TimeRangeIter<P> {
     }
 }
 
-impl<P: TimeResolution> FusedIterator for TimeRangeIter<P> {}
+impl<P: TimeResolution + Send> FusedIterator for TimeRangeIter<P> {}
 
-impl<P: TimeResolution> ExactSizeIterator for TimeRangeIter<P> {}
+impl<P: TimeResolution + Send> ExactSizeIterator for TimeRangeIter<P> {}
 
-impl<P: TimeResolution> DoubleEndedIterator for TimeRangeIter<P> {
+impl<P: TimeResolution + Send> DoubleEndedIterator for TimeRangeIter<P> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.start <= self.end {
             let ret = self.end;
@@ -275,7 +275,7 @@ impl<P: TimeResolution> DoubleEndedIterator for TimeRangeIter<P> {
     }
 }
 
-impl<P: TimeResolution, Z: FixedTimeZone> TimeRange<Zoned<P, Z>> {
+impl<P: TimeResolution, Z: FixedTimeZone + Send> TimeRange<Zoned<P, Z>> {
     pub fn local(&self) -> TimeRange<P> {
         TimeRange::new(self.start().local_resolution(), self.len)
     }

@@ -1,8 +1,5 @@
-use futures_channel::mpsc::{unbounded, UnboundedReceiver, UnboundedSender};
 use futures_core::{FusedStream, Future, Stream};
-use futures_util::{never::Never, FutureExt, StreamExt};
-use gc::Finalize;
-use gloo::{events::EventListener, utils::body};
+use gloo::utils::body;
 use plotters::{
     coord::Shift,
     drawing::{DrawingArea, IntoDrawingArea},
@@ -15,20 +12,18 @@ use std::{
     mem,
     ops::Deref,
     pin::{pin, Pin},
-    process::Output,
     rc::Rc,
     task::{Context, Poll},
 };
-use tokio::sync::watch::{self, Receiver, Sender};
-use tokio_stream::wrappers::WatchStream;
+use tokio::sync::watch::{Receiver, Sender};
 use tracing::warn;
-use wasm_bindgen::{closure::Closure, prelude::wasm_bindgen, JsCast, JsValue, UnwrapThrowExt};
+use wasm_bindgen::{closure::Closure, JsCast, UnwrapThrowExt};
 use web_sys::{
     Event, HtmlAnchorElement, HtmlBrElement, HtmlButtonElement, HtmlCanvasElement, HtmlDivElement,
     HtmlElement, HtmlFieldSetElement, HtmlFormElement, HtmlHeadingElement, HtmlHrElement,
     HtmlInputElement, HtmlLabelElement, HtmlLiElement, HtmlOptionElement, HtmlParagraphElement,
     HtmlSelectElement, HtmlSpanElement, HtmlTableCellElement, HtmlTableElement,
-    HtmlTableRowElement, HtmlTextAreaElement, MutationObserver,
+    HtmlTableRowElement, HtmlTextAreaElement,
 };
 
 pub mod svg_backend;
@@ -319,7 +314,7 @@ impl<H, IdSet> Element<H, AllowsText, IdSet>
 where
     H: AsRef<web_sys::HtmlElement> + JsCast + Clone + 'static,
 {
-    pub fn static_text(mut self, text: &str) -> Element<H, HasText, IdSet> {
+    pub fn static_text(self, text: &str) -> Element<H, HasText, IdSet> {
         if !AsRef::<web_sys::HtmlElement>::as_ref(&self.dom).has_child_nodes() {
             AsRef::<web_sys::HtmlElement>::as_ref(&self.dom).set_inner_html(text);
         } else {
@@ -356,7 +351,7 @@ impl<H, TextSet> Element<H, TextSet, AllowsId>
 where
     H: AsRef<web_sys::HtmlElement> + JsCast + Clone + 'static,
 {
-    pub fn set_id(mut self, value: &str) -> Element<H, TextSet, HasId> {
+    pub fn set_id( self, value: &str) -> Element<H, TextSet, HasId> {
         AsRef::<web_sys::HtmlElement>::as_ref(&self.dom).set_id(value);
 
         Element {
@@ -523,7 +518,7 @@ where
         handler(&dom_ref, subscription.get());
 
         wasm_bindgen_futures::spawn_local(async move {
-            while let Some(_) = subscription.next().await {
+            while (subscription.next().await).is_some() {
                 handler(&dom_ref, subscription.get());
             }
         });

@@ -122,6 +122,60 @@ impl fmt::Display for Quarter {
     }
 }
 
+#[cfg(feature = "serde")]
+impl<'de> de::Deserialize<'de> for Quarter {
+    fn deserialize<D>(deserializer: D) -> result::Result<Quarter, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let date = s.parse::<Quarter>().map_err(serde::de::Error::custom)?;
+        Ok(date)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Quarter {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = self.to_string();
+        serializer.serialize_str(&s)
+    }
+}
+
+impl str::FromStr for Quarter {
+    type Err = crate::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(parsed) = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d") {
+            Ok(parsed.into())
+        } else {
+            let split = s
+                .split('-')
+                .map(ToString::to_string)
+                .collect::<Vec<String>>();
+            if split.len() == 2 {
+                let qtr = split[0]
+                    .chars()
+                    .nth(1)
+                    .unwrap()
+                    .to_string()
+                    .parse::<u32>()?;
+                let year = split[1].parse()?;
+                let date =
+                    chrono::NaiveDate::from_ymd_opt(year, qtr * 3 - 2, 1).expect("valid date");
+                Ok(date.into())
+            } else {
+                Err(crate::Error::ParseCustom {
+                    ty_name: "Quarter",
+                    input: s.to_string(),
+                })
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,59 +253,5 @@ mod tests {
             Quarter(-2).start(),
             chrono::NaiveDate::from_ymd_opt(-1, 7, 1).unwrap()
         );
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> de::Deserialize<'de> for Quarter {
-    fn deserialize<D>(deserializer: D) -> result::Result<Quarter, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let date = s.parse::<Quarter>().map_err(serde::de::Error::custom)?;
-        Ok(date)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl serde::Serialize for Quarter {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let s = self.to_string();
-        serializer.serialize_str(&s)
-    }
-}
-
-impl str::FromStr for Quarter {
-    type Err = crate::Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(parsed) = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d") {
-            Ok(parsed.into())
-        } else {
-            let split = s
-                .split('-')
-                .map(ToString::to_string)
-                .collect::<Vec<String>>();
-            if split.len() == 2 {
-                let qtr = split[0]
-                    .chars()
-                    .nth(1)
-                    .unwrap()
-                    .to_string()
-                    .parse::<u32>()?;
-                let year = split[1].parse()?;
-                let date =
-                    chrono::NaiveDate::from_ymd_opt(year, qtr * 3 - 2, 1).expect("valid date");
-                Ok(date.into())
-            } else {
-                Err(crate::Error::ParseCustom {
-                    ty_name: "Quarter",
-                    input: s.to_string(),
-                })
-            }
-        }
     }
 }

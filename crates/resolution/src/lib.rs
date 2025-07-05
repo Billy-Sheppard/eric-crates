@@ -293,7 +293,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// occurring at regular times. Some examples are:
 /// * A cash-flow report aggregated to days or months
 /// * Dispatch periods in the Australian Electricity Market (and similar concepts in other energy markets)
-pub trait TimeResolution: Copy + Eq + Ord + Monotonic {
+pub trait TimeResolution: Copy + Eq + Ord + Monotonic + Send {
     fn succ(&self) -> Self {
         self.succ_n(1)
     }
@@ -449,64 +449,52 @@ trait DateResolutionBuilder {
 }
 impl DateResolutionBuilder for i16 {
     fn q1(self) -> Quarter {
-        Quarter::from_parts(
-            <Self as Into<i16>>::into(self).into(),
-            quarter::QuarterNumber::Q1,
-        )
+        Quarter::from_parts(<Self as Into<i16>>::into(self), quarter::QuarterNumber::Q1)
     }
     fn q2(self) -> Quarter {
-        Quarter::from_parts(
-            <Self as Into<i16>>::into(self).into(),
-            quarter::QuarterNumber::Q2,
-        )
+        Quarter::from_parts(<Self as Into<i16>>::into(self), quarter::QuarterNumber::Q2)
     }
     fn q3(self) -> Quarter {
-        Quarter::from_parts(
-            <Self as Into<i16>>::into(self).into(),
-            quarter::QuarterNumber::Q3,
-        )
+        Quarter::from_parts(<Self as Into<i16>>::into(self), quarter::QuarterNumber::Q3)
     }
     fn q4(self) -> Quarter {
-        Quarter::from_parts(
-            <Self as Into<i16>>::into(self).into(),
-            quarter::QuarterNumber::Q4,
-        )
+        Quarter::from_parts(<Self as Into<i16>>::into(self), quarter::QuarterNumber::Q4)
     }
     fn jan(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::January)
+        Month::from_year_month(self, chrono::Month::January)
     }
     fn feb(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::February)
+        Month::from_year_month(self, chrono::Month::February)
     }
     fn mar(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::March)
+        Month::from_year_month(self, chrono::Month::March)
     }
     fn apr(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::April)
+        Month::from_year_month(self, chrono::Month::April)
     }
     fn may(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::May)
+        Month::from_year_month(self, chrono::Month::May)
     }
     fn jun(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::June)
+        Month::from_year_month(self, chrono::Month::June)
     }
     fn jul(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::July)
+        Month::from_year_month(self, chrono::Month::July)
     }
     fn aug(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::August)
+        Month::from_year_month(self, chrono::Month::August)
     }
     fn sep(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::September)
+        Month::from_year_month(self, chrono::Month::September)
     }
     fn oct(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::October)
+        Month::from_year_month(self, chrono::Month::October)
     }
     fn nov(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::November)
+        Month::from_year_month(self, chrono::Month::November)
     }
     fn dec(self) -> Month {
-        Month::from_year_month(self.into(), chrono::Month::December)
+        Month::from_year_month(self, chrono::Month::December)
     }
 }
 
