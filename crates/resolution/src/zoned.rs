@@ -17,7 +17,7 @@ use core::fmt;
 use core::hash::Hash;
 use core::result;
 
-pub trait FixedTimeZone: TimeZone + Copy + fmt::Debug {
+pub trait FixedTimeZone: TimeZone + Hash + Copy + fmt::Debug {
     fn new() -> Self;
 }
 
