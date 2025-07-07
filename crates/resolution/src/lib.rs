@@ -5,6 +5,7 @@ extern crate std;
 
 use core::{
     any, fmt,
+    hash::Hash,
     num::{self, ParseIntError},
     str,
 };
@@ -293,7 +294,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// occurring at regular times. Some examples are:
 /// * A cash-flow report aggregated to days or months
 /// * Dispatch periods in the Australian Electricity Market (and similar concepts in other energy markets)
-pub trait TimeResolution: Copy + Eq + Ord + Monotonic + Send {
+pub trait TimeResolution: Copy + Hash + Eq + Ord + Monotonic + Send {
     fn succ(&self) -> Self {
         self.succ_n(1)
     }

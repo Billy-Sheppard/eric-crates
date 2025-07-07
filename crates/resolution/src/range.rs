@@ -4,7 +4,7 @@ use crate::{
 };
 use alloc::{collections, fmt, vec::Vec};
 use chrono::{DateTime, Utc};
-use core::{iter::FusedIterator, mem, num};
+use core::{hash::Hash, iter::FusedIterator, mem, num};
 #[cfg(feature = "serde")]
 use serde::de;
 
@@ -274,7 +274,7 @@ impl<P: TimeResolution + Send> DoubleEndedIterator for TimeRangeIter<P> {
     }
 }
 
-impl<P: TimeResolution, Z: FixedTimeZone + Send> TimeRange<Zoned<P, Z>> {
+impl<P: TimeResolution, Z: FixedTimeZone + Send + Hash> TimeRange<Zoned<P, Z>> {
     pub fn local(&self) -> TimeRange<P> {
         TimeRange::new(self.start().local_resolution(), self.len)
     }

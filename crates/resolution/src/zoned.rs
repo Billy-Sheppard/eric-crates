@@ -14,6 +14,7 @@ use chrono::TimeDelta;
 use chrono::TimeZone;
 use chrono::Utc;
 use core::fmt;
+use core::hash::Hash;
 use core::result;
 
 pub trait FixedTimeZone: TimeZone + Copy + fmt::Debug {
@@ -38,7 +39,7 @@ impl FixedTimeZone for Utc {
 pub struct Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + Hash + fmt::Debug,
 {
     // we store local rather than utc here.
     // this is because we want start time validation (relevant for Minutes<N>) to be applied to the
@@ -51,11 +52,23 @@ where
     zone: Z,
 }
 
+impl<R, Z> Hash for Zoned<R, Z>
+where
+    R: TimeResolution,
+    Z: TimeZone + Copy + Hash + fmt::Debug,
+{
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.local_resolution.hash(state);
+        self.current_offset.hash(state);
+        self.zone.hash(state);
+    }
+}
+
 #[cfg(feature = "serde")]
 impl<'de, R, Z> serde::de::Deserialize<'de> for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Hash,
 {
     fn deserialize<D>(deserializer: D) -> result::Result<Zoned<R, Z>, D::Error>
     where
@@ -75,7 +88,7 @@ where
 impl<R, Z> serde::Serialize for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Hash,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -90,7 +103,7 @@ where
 impl<R, Z> TimeResolution for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: FixedTimeZone + Send,
+    Z: FixedTimeZone + Send + Hash,
 {
     fn succ_n(&self, n: u64) -> Self {
         Zoned {
@@ -115,7 +128,7 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: FixedTimeZone + Send,
+    Z: FixedTimeZone + Send + Hash,
 {
     pub fn local_end_exclusive(&self) -> chrono::DateTime<Z> {
         self.succ().local_start_datetime()
@@ -125,7 +138,7 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: FixedTimeZone,
+    Z: FixedTimeZone + Hash,
 {
     pub fn from_local(value: R, zone: Z) -> Self {
         value
@@ -144,7 +157,7 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     pub fn local_start_datetime(&self) -> DateTime<Z> {
         self.local_resolution
@@ -173,7 +186,7 @@ where
 impl<R, Z> fmt::Debug for Zoned<R, Z>
 where
     R: TimeResolution + fmt::Debug,
-    Z: TimeZone + fmt::Debug + Copy,
+    Z: TimeZone + fmt::Debug + Copy + Hash,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Zoned")
@@ -187,7 +200,7 @@ where
 
 impl<R, Z> Monotonic for Zoned<R, Z>
 where
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
     R: TimeResolution,
 {
     fn to_monotonic(&self) -> i64 {
@@ -219,7 +232,7 @@ where
 impl<R, Z> SubDateResolution for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: FixedTimeZone + Send,
+    Z: FixedTimeZone + Send + Hash,
 {
     type Params = Z;
     fn params(&self) -> Self::Params {
@@ -250,7 +263,7 @@ where
 impl<R, Z> DateResolution for Zoned<R, Z>
 where
     R: DateResolution<Params = ()>,
-    Z: FixedTimeZone + Send,
+    Z: FixedTimeZone + Send + Hash,
 {
     type Params = Z;
     fn params(&self) -> Self::Params {
@@ -268,7 +281,7 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: DateResolution<Params = ()>,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     pub fn start(&self) -> NaiveDate {
         self.local_resolution.start()
@@ -305,7 +318,7 @@ where
 impl<Z, R> From<chrono::DateTime<Z>> for Zoned<R, Z>
 where
     R: SubDateResolution<Params = ()>,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     fn from(local_time: chrono::DateTime<Z>) -> Self {
         Zoned {
@@ -321,14 +334,14 @@ where
 impl<R, Z> Copy for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
 }
 
 impl<R, Z> Clone for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     fn clone(&self) -> Self {
         *self
@@ -338,14 +351,14 @@ where
 impl<R, Z> Eq for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
 }
 
 impl<R, Z> PartialEq for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     fn eq(&self, other: &Self) -> bool {
         self.local_start_datetime() == other.local_start_datetime()
@@ -355,7 +368,7 @@ where
 impl<R, Z> Ord for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         self.local_start_datetime()
@@ -366,7 +379,7 @@ where
 impl<R, Z> PartialOrd for Zoned<R, Z>
 where
     R: TimeResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         Some(self.cmp(other))
@@ -376,19 +389,21 @@ where
 impl<R, Z> Zoned<R, Z>
 where
     R: DateResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
 }
 
 impl<R, Z> Zoned<R, Z>
 where
     R: SubDateResolution,
-    Z: TimeZone + Copy + fmt::Debug,
+    Z: TimeZone + Copy + fmt::Debug + Hash,
 {
 }
 
 #[cfg(test)]
 mod tests {
+    use core::hash::Hash;
+
     use crate::DateResolution;
     use crate::Day;
     use crate::FixedTimeZone;
@@ -439,7 +454,7 @@ mod tests {
             // subdate::<240>(tz);
         }
 
-        fn subdate_fixed<const N: u32, Z: FixedTimeZone>(tz: Z) {
+        fn subdate_fixed<const N: u32, Z: FixedTimeZone + Hash>(tz: Z) {
             let start = chrono::NaiveDate::from_ymd_opt(2022, 1, 1)
                 .unwrap()
                 .and_hms_opt(0, 0, 0)
@@ -478,7 +493,7 @@ mod tests {
             }
         }
 
-        #[derive(Debug, Clone, Copy)]
+        #[derive(Debug, Clone, Copy, Hash)]
         struct FixedEast<const N: i32>;
 
         impl<const N: i32> chrono::TimeZone for FixedEast<N> {
@@ -517,7 +532,7 @@ mod tests {
             }
         }
 
-        fn test_for_zone<F: FixedTimeZone>() {
+        fn test_for_zone<F: FixedTimeZone + Hash>() {
             subdate_fixed::<1, _>(F::new());
             subdate_fixed::<2, _>(F::new());
             subdate_fixed::<5, _>(F::new());
